@@ -215,7 +215,7 @@ public class CaptchaService {
 		captchaDataResult.setAudioCaptcha(captchaAudioFile);
 		captchaDataResult.setCaptchaImg(captchaPngImage);
 		captchaDataResult.setCaptchaType(CaptchaConstants.STANDARD);
-
+		System.out.println(captcha.toString());
 		addCaptcha(captchaId,captcha.getAnswer());
 
 		return captchaDataResult;
@@ -228,21 +228,32 @@ public class CaptchaService {
 	 * @return Boolean of the verification
 	 */
 	public boolean validateCaptcha(String captchaId,String captchaAnswer  ,  boolean usingAudio){
-		boolean result=false;
+		try {
+			boolean result=false;
 
-		//case sensitive
-		if (!usingAudio) {
-			if (captchaCodeMap.containsKey(captchaId) && captchaCodeMap.get(captchaId).equals(captchaAnswer))
-				result = true;
+			//case sensitive
+			if (!usingAudio) {
+				boolean captchaExists = captchaCodeMap.containsKey(captchaId);
+				System.out.println("captchaExists = " + captchaExists + ", captchaId = " + captchaId);
+				if (captchaExists) {
+					String captcha = captchaCodeMap.get(captchaId);
+					System.out.println("captcha = " + captcha + ", captchaAnswer = " + captchaAnswer);
+					return captcha.equals(captchaAnswer);
+				}
+				return false;
+			}
+			//if the audio is selected , ignore case sensitive
+			else
+			{
+				if (captchaCodeMap.containsKey(captchaId) && captchaCodeMap.get(captchaId).equalsIgnoreCase(captchaAnswer)) {
+					result = true;
+					return result;
+				}
+			}
+			return result;
+		} finally {
+			removeCaptcha(captchaId);
 		}
-		//if the audio is selected , ignore case sensitive
-		else
-		{
-			if (captchaCodeMap.containsKey(captchaId) && captchaCodeMap.get(captchaId).equalsIgnoreCase(captchaAnswer))
-				result = true;
-		}
-		removeCaptcha(captchaId);
-		return result;
 	}
 
 	public boolean validateWhatsUpCaptcha(String captchaId , String captchaAnswer ){
